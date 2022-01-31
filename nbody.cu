@@ -10,8 +10,8 @@ struct ParticleType {
   float vx, vy, vz; 
 };
 
-__global__ void MoveParticles(const int nParticles, struct ParticleType* particle, const float dt) {
-  ParticleType* particle0=particle;
+__global__ void MoveParticles(const int nParticles,struct ParticleType* particle0, struct ParticleType* particle, const float dt) {
+  // ParticleType* particle0=particle;
   int i = threadIdx.x + blockIdx.x * blockDim.x;
   // Loop over particles that experience force
   float Fx = 0, Fy = 0, Fz = 0; 
@@ -111,22 +111,23 @@ int main(const int argc, const char** argv)
   printf("\033[1m%5s %10s %10s %8s\033[0m\n", "Step", "Time, s", "Interact/s", "GFLOP/s"); fflush(stdout);
   for (int step = 1; step <= nSteps; step++) {
 
-    struct ParticleType *d_particles;
+    struct ParticleType *d_particles,*d_particles0;
     size_t size = nParticles*sizeof(struct ParticleType);
     cudaMalloc(&d_particles, size);
+    cudaMalloc(&d_particles0, size);
     cudaMemcpy(d_particles, particle, size, cudaMemcpyHostToDevice);
-
+    cudaMemcpy(d_particles0, particle, size, cudaMemcpyHostToDevice);
     int threadPerBlocs = 256;
     /* Ceil */
     int blocksPerGrid   = nParticles/threadPerBlocs +((nParticles%threadPerBlocs==0)? 0 : 1) ;
 
     const double tStart = omp_get_wtime(); // Start timing
-    MoveParticles<<< blocksPerGrid, threadPerBlocs >>>(nParticles, d_particles, dt);
+    MoveParticles<<< blocksPerGrid, threadPerBlocs >>>(nParticles,d_particles0,d_particles, dt);
     const double tEnd = omp_get_wtime(); // End timing
 
     cudaMemcpy(particle, d_particles, size, cudaMemcpyDeviceToHost);
     cudaFree(d_particles);
-
+    cudaFree(d_particles0);
     const float HztoInts   = ((float)nParticles)*((float)(nParticles-1)) ;
     const float HztoGFLOPs = 20.0*1e-9*((float)(nParticles))*((float)(nParticles-1));
 
@@ -152,5 +153,8 @@ int main(const int argc, const char** argv)
   printf("* - warm-up, not included in average\n\n");
   free(particle);
 }
+
+
+
 
 
