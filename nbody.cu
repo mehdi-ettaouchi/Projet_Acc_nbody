@@ -19,7 +19,8 @@ __global__ void MoveParticles(const int nParticles,struct ParticleType* particle
 
     // Components of the gravity force on particle i
     // Loop over particles that exert force
-    for (int j = 0, Fx = Fy = Fz = 0.; j < nParticles; j++) { 
+    Fx =0.; Fy =0; Fz = 0.;
+    for (int j = 0; j < nParticles; j++) { 
       // No self interaction
       if (i != j) {
           // Avoid singularity and interaction with self
