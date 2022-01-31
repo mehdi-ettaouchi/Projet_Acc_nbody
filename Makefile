@@ -1,6 +1,5 @@
-nbody: nbody.c
-	pgcc -DDUMP nbody.c -o nbody -lm -ta:tesla -mp -Minfo=all -O3 
-
+nbody: nbody.cu
+        nvcc -DDUMP nbody.cu -Xcompiler -fopenmp -o nbody
 clean:
-	rm -f nbody
+        rm -f nbody
 
