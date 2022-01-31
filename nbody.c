@@ -14,12 +14,13 @@ void MoveParticles(const int nParticles, struct ParticleType* const particle, co
 
   // Loop over particles that experience force
   float Fx = 0, Fy = 0, Fz = 0; 
-  //#pragma acc parallel loop collapse(2)
+  #pragma acc parallel loop 
   for (int i = 0; i < nParticles; i++) { 
 
     // Components of the gravity force on particle i
     // Loop over particles that exert force
-    for (int j = 0, Fx = Fy = Fz = 0.; j < nParticles; j++) { 
+    Fx=0.;Fy=0.;Fz=0.;	  
+    for (int j = 0; j < nParticles; j++) { 
       // No self interaction
       if (i != j) {
           // Avoid singularity and interaction with self
@@ -48,7 +49,7 @@ void MoveParticles(const int nParticles, struct ParticleType* const particle, co
 
   // Move particles according to their velocities
   // O(N) work, so using a serial loop
-  //#pragma acc parallel loop
+  #pragma acc parallel loop
   for (int i = 0 ; i < nParticles; i++) { 
     particle[i].x  += particle[i].vx*dt;
     particle[i].y  += particle[i].vy*dt;
